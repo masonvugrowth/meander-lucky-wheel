@@ -75,7 +75,7 @@ const styles = {
   },
 }
 
-export default function BranchSelector({ onSelect }) {
+export default function BranchSelector({ onSelect, onInventory }) {
   const [hovered, setHovered] = React.useState(null)
 
   return (
@@ -106,6 +106,18 @@ export default function BranchSelector({ onSelect }) {
           </button>
         ))}
       </div>
+
+      {onInventory && (
+        <button onClick={onInventory} style={{
+          marginTop: '2rem', background: 'none', border: 'none',
+          fontSize: '0.65rem', letterSpacing: '0.22em', textTransform: 'uppercase',
+          color: 'var(--light)', cursor: 'pointer', padding: '0.5rem 0.75rem',
+          textDecoration: 'underline', textDecorationColor: 'var(--warm)',
+          textUnderlineOffset: '4px',
+        }}>
+          Staff · Inventory
+        </button>
+      )}
     </div>
   )
 }

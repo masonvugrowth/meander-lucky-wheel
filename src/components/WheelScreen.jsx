@@ -149,10 +149,10 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
           color: 'var(--white)',
           border: 'none',
           borderRadius: '100px',
-          padding: '1rem 3.5rem',
-          fontSize: '0.85rem',
+          padding: '1.35rem 5rem',
+          fontSize: '1.05rem',
           fontWeight: 500,
-          letterSpacing: '0.14em',
+          letterSpacing: '0.18em',
           textTransform: 'uppercase',
           cursor: spinning || activeCount === 0 ? 'not-allowed' : 'pointer',
           marginBottom: '2rem',
@@ -187,9 +187,11 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
                   {r.emoji} {r.display_name}
                 </span>
               </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--light)', flexShrink: 0 }}>
-                {isOut ? 'Out' : `×${r.inventory_count}`}
-              </span>
+              {isOut && (
+                <span style={{ fontSize: '0.75rem', color: 'var(--light)', flexShrink: 0 }}>
+                  Out
+                </span>
+              )}
             </div>
           )
         })}
