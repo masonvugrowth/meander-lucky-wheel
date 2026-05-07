@@ -29,14 +29,18 @@ export const BRANCH_META = {
   },
 }
 
+// Image paths are resolved against Vite's BASE_URL (e.g. '/meander-lucky-wheel/').
+// Drop matching files into `public/prizes/` and they will be picked up automatically.
+const PRIZE_IMG = (file) => `${import.meta.env.BASE_URL}prizes/${file}`
+
 export const DEFAULT_REWARDS = [
-  { id: 'toiletry',   display_name: 'Waterproof Toiletry Bag',       emoji: '🧴', tier: 'rare',     probability_weight: 5,  inventory_count: 15 },
-  { id: 'toothpaste', display_name: 'Konnyaku Toothpaste',            emoji: '🪥', tier: 'common',   probability_weight: 35, inventory_count: 50 },
-  { id: 'toothbrush', display_name: 'Organic Bamboo Toothbrush',      emoji: '🌿', tier: 'common',   probability_weight: 30, inventory_count: 50 },
-  { id: 'laundry',    display_name: 'Eco Fabric Laundry Mousse',      emoji: '🫧', tier: 'common',   probability_weight: 28, inventory_count: 40 },
-  { id: 'mist',       display_name: 'Antibacterial Garment Mist',     emoji: '✨', tier: 'uncommon', probability_weight: 15, inventory_count: 25 },
-  { id: 'towel',      display_name: 'SHIZUKU Osaka Towel',            emoji: '🎋', tier: 'uncommon', probability_weight: 12, inventory_count: 20 },
-  { id: 'socks',      display_name: '10th Anniversary Socks',         emoji: '🧦', tier: 'ultra',    probability_weight: 3,  inventory_count: 10 },
+  { id: 'toiletry',   display_name: 'Waterproof Toiletry Bag',       emoji: '🧴', image: PRIZE_IMG('toiletry.png'),   tier: 'rare',     probability_weight: 5,  inventory_count: 15 },
+  { id: 'toothpaste', display_name: 'Konnyaku Toothpaste',            emoji: '🪥', image: PRIZE_IMG('toothpaste.png'), tier: 'common',   probability_weight: 35, inventory_count: 50 },
+  { id: 'toothbrush', display_name: 'Organic Bamboo Toothbrush',      emoji: '🌿', image: PRIZE_IMG('toothbrush.png'), tier: 'common',   probability_weight: 30, inventory_count: 50 },
+  { id: 'laundry',    display_name: 'Eco Fabric Laundry Mousse',      emoji: '🫧', image: PRIZE_IMG('laundry.png'),    tier: 'common',   probability_weight: 28, inventory_count: 40 },
+  { id: 'mist',       display_name: 'Antibacterial Garment Mist',     emoji: '✨', image: PRIZE_IMG('mist.png'),       tier: 'uncommon', probability_weight: 15, inventory_count: 25 },
+  { id: 'towel',      display_name: 'SHIZUKU Osaka Towel',            emoji: '🎋', image: PRIZE_IMG('towel.png'),      tier: 'uncommon', probability_weight: 12, inventory_count: 20 },
+  { id: 'socks',      display_name: '10th Anniversary Socks',         emoji: '🧦', image: PRIZE_IMG('socks.png'),      tier: 'ultra',    probability_weight: 3,  inventory_count: 10 },
 ]
 
 export const TIER_LABELS = {

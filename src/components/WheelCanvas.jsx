@@ -2,18 +2,33 @@ import React, { useRef, useEffect, useImperativeHandle, forwardRef, useCallback 
 import { BRANCH_META } from '../data/constants'
 import { easeOutQuart, playSpinSound } from '../utils/helpers'
 
-const SIZE = 320
+const SIZE = 380
 const CX = SIZE / 2
 const CY = SIZE / 2
 const R  = SIZE / 2 - 8
 
 const WheelCanvas = forwardRef(function WheelCanvas({ branch, rewards, onSpinComplete }, ref) {
-  const canvasRef = useRef(null)
-  const angleRef  = useRef(0)   // current rotation offset (radians)
-  const rafRef    = useRef(null)
-  const spinningRef = useRef(false)
+  const canvasRef    = useRef(null)
+  const angleRef     = useRef(0)
+  const rafRef       = useRef(null)
+  const spinningRef  = useRef(false)
+  const imagesRef    = useRef({})        // { [reward.id]: HTMLImageElement | 'failed' }
 
-  // ── Draw ──────────────────────────────────────────────────────
+  // ── Preload prize images ─────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false
+    rewards.forEach((r) => {
+      if (!r.image || imagesRef.current[r.id]) return
+      const img = new Image()
+      img.onload  = () => { if (!cancelled) { imagesRef.current[r.id] = img; draw() } }
+      img.onerror = () => { if (!cancelled) { imagesRef.current[r.id] = 'failed' } }
+      img.src = r.image
+    })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rewards])
+
+  // ── Draw ─────────────────────────────────────────────────────
   const draw = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -21,8 +36,18 @@ const WheelCanvas = forwardRef(function WheelCanvas({ branch, rewards, onSpinCom
     const meta = BRANCH_META[branch]
     const N = rewards.length
     if (!N) return
-    const sliceAngle = (2 * Math.PI) / N
 
+    // HiDPI scaling so text/images stay crisp
+    const dpr = window.devicePixelRatio || 1
+    if (canvas.width !== SIZE * dpr) {
+      canvas.width  = SIZE * dpr
+      canvas.height = SIZE * dpr
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+
+    const sliceAngle = (2 * Math.PI) / N
     ctx.clearRect(0, 0, SIZE, SIZE)
 
     rewards.forEach((r, i) => {
@@ -44,26 +69,36 @@ const WheelCanvas = forwardRef(function WheelCanvas({ branch, rewards, onSpinCom
       ctx.lineWidth = 2
       ctx.stroke()
 
-      // Label
+      // ── Label area: image (or emoji) above name ──────────────
       const midA  = startA + sliceAngle / 2
       const textR = R * 0.62
       ctx.save()
       ctx.translate(CX + textR * Math.cos(midA), CY + textR * Math.sin(midA))
       ctx.rotate(midA + Math.PI / 2)
       ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
 
-      // Emoji
-      ctx.font = '500 13px DM Sans, sans-serif'
-      ctx.fillStyle = isOut ? '#aaa' : '#1a1a18'
-      ctx.fillText(r.emoji, 0, -10)
+      // Icon: prefer real image, fall back to emoji
+      const img = imagesRef.current[r.id]
+      const iconSize = 44
+      if (img && img !== 'failed') {
+        const prevAlpha = ctx.globalAlpha
+        if (isOut) ctx.globalAlpha = 0.4
+        ctx.drawImage(img, -iconSize / 2, -iconSize / 2 - 12, iconSize, iconSize)
+        ctx.globalAlpha = prevAlpha
+      } else {
+        ctx.font = '500 22px DM Sans, sans-serif'
+        ctx.fillStyle = isOut ? '#aaa' : '#1a1a18'
+        ctx.fillText(r.emoji, 0, -16)
+      }
 
-      // Short name
-      const short = r.display_name.length > 13
-        ? r.display_name.substring(0, 11) + '…'
+      // Short name — bigger, bolder, darker for legibility
+      const short = r.display_name.length > 14
+        ? r.display_name.substring(0, 12) + '…'
         : r.display_name
-      ctx.font = '400 7.5px DM Sans, sans-serif'
-      ctx.fillStyle = isOut ? '#bbb' : '#3a3a38'
-      ctx.fillText(short, 0, 4)
+      ctx.font = '600 10.5px "DM Sans", sans-serif'
+      ctx.fillStyle = isOut ? '#999' : '#1f1f1d'
+      ctx.fillText(short, 0, 22)
       ctx.restore()
     })
 
@@ -75,10 +110,16 @@ const WheelCanvas = forwardRef(function WheelCanvas({ branch, rewards, onSpinCom
     ctx.stroke()
   }, [branch, rewards])
 
-  // Redraw whenever rewards change
   useEffect(() => { draw() }, [draw])
 
-  // ── Spin API (called from parent via ref) ────────────────────
+  // Redraw when DPR changes (e.g. moving across monitors)
+  useEffect(() => {
+    const onResize = () => draw()
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [draw])
+
+  // ── Spin API ─────────────────────────────────────────────────
   const spinTo = useCallback((winnerIdx) => {
     if (spinningRef.current) return
     spinningRef.current = true
@@ -87,7 +128,6 @@ const WheelCanvas = forwardRef(function WheelCanvas({ branch, rewards, onSpinCom
     const N = rewards.length
     const sliceAngle = (2 * Math.PI) / N
     const extraSpins  = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI
-    // Land pointer (top = -π/2) on the center of winner slice
     const targetSliceCenter = winnerIdx * sliceAngle
     const jitter = (Math.random() - 0.5) * sliceAngle * 0.55
     const targetDelta = extraSpins - targetSliceCenter - sliceAngle / 2 + jitter
@@ -105,7 +145,6 @@ const WheelCanvas = forwardRef(function WheelCanvas({ branch, rewards, onSpinCom
       if (t < 1) {
         rafRef.current = requestAnimationFrame(frame)
       } else {
-        // Normalise angle
         angleRef.current = ((angleRef.current % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)
         spinningRef.current = false
         onSpinComplete()
@@ -122,9 +161,10 @@ const WheelCanvas = forwardRef(function WheelCanvas({ branch, rewards, onSpinCom
   return (
     <canvas
       ref={canvasRef}
-      width={SIZE}
-      height={SIZE}
-      style={{ borderRadius: '50%', display: 'block' }}
+      style={{
+        width: `${SIZE}px`, height: `${SIZE}px`,
+        borderRadius: '50%', display: 'block',
+      }}
     />
   )
 })

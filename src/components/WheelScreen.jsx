@@ -106,7 +106,7 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
       </div>
 
       {/* Wheel */}
-      <div style={{ position: 'relative', width: '320px', height: '320px', margin: '0 auto 2rem' }}>
+      <div style={{ position: 'relative', width: '380px', height: '380px', maxWidth: '92vw', maxHeight: '92vw', margin: '0 auto 2rem' }}>
         {/* Pointer */}
         <div style={{
           position: 'absolute', top: '-10px', left: '50%',
@@ -130,13 +130,13 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
         <div style={{
           position: 'absolute', top: '50%', left: '50%',
           transform: 'translate(-50%,-50%)',
-          width: '48px', height: '48px',
+          width: '56px', height: '56px',
           background: 'var(--white)', borderRadius: '50%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: `0 0 0 3px var(--cream), 0 0 0 5px ${meta.accent}`,
           zIndex: 10,
         }}>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: meta.accent }} />
+          <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: meta.accent }} />
         </div>
       </div>
 
@@ -179,12 +179,13 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
               borderBottom: '1px solid var(--warm)',
               opacity: isOut ? 0.5 : 1,
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', flex: 1, gap: '0.75rem' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%',
-                  background: isOut ? '#ccc' : color, marginRight: '0.75rem', flexShrink: 0 }} />
+                  background: isOut ? '#ccc' : color, flexShrink: 0 }} />
+                <PrizeIcon reward={r} grayscale={isOut} />
                 <span style={{ fontSize: '0.82rem', color: 'var(--dark)',
                   textDecoration: isOut ? 'line-through' : 'none' }}>
-                  {r.emoji} {r.display_name}
+                  {r.display_name}
                 </span>
               </div>
               {isOut && (
@@ -213,5 +214,30 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
         />
       )}
     </div>
+  )
+}
+
+/* Small icon that prefers the prize image; falls back to emoji on error. */
+function PrizeIcon({ reward, size = 22, grayscale = false }) {
+  const [failed, setFailed] = React.useState(false)
+  const showImage = reward.image && !failed
+  const filter = grayscale ? 'grayscale(1)' : 'none'
+
+  if (showImage) {
+    return (
+      <img
+        src={reward.image}
+        alt=""
+        onError={() => setFailed(true)}
+        style={{
+          width: size, height: size, objectFit: 'contain',
+          flexShrink: 0, filter, opacity: grayscale ? 0.6 : 1,
+        }}
+      />
+    )
+  }
+  return (
+    <span style={{ fontSize: `${size * 0.85}px`, lineHeight: 1, flexShrink: 0,
+      filter, opacity: grayscale ? 0.5 : 1 }}>{reward.emoji}</span>
   )
 }

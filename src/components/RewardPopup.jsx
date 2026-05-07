@@ -1,9 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { TIER_LABELS } from '../data/constants'
 
 export default function RewardPopup({ reward, onClose }) {
   if (!reward) return null
   const tier = TIER_LABELS[reward.tier] ?? TIER_LABELS.common
+  const [imgFailed, setImgFailed] = useState(false)
+  const showImage = reward.image && !imgFailed
 
   return (
     <div style={{
@@ -22,7 +24,19 @@ export default function RewardPopup({ reward, onClose }) {
         width: '100%',
         animation: 'popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)',
       }}>
-        <div style={{ fontSize: '3.8rem', marginBottom: '0.75rem' }}>{reward.emoji}</div>
+        {showImage ? (
+          <img
+            src={reward.image}
+            alt={reward.display_name}
+            onError={() => setImgFailed(true)}
+            style={{
+              width: '140px', height: '140px', objectFit: 'contain',
+              margin: '0 auto 0.75rem', display: 'block',
+            }}
+          />
+        ) : (
+          <div style={{ fontSize: '3.8rem', marginBottom: '0.75rem' }}>{reward.emoji}</div>
+        )}
 
         <div style={{
           fontSize: '0.62rem',
