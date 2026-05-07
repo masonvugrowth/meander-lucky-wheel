@@ -8,14 +8,28 @@ function freshBranch() {
   }
 }
 
+// Re-hydrate rewards from DEFAULT_REWARDS so static metadata (image, emoji,
+// display_name, tier) always tracks the source code; only the staff-mutable
+// fields (inventory_count, probability_weight) are taken from storage.
+function mergeRewards(stored) {
+  return DEFAULT_REWARDS.map(def => {
+    const old = stored?.find(s => s.id === def.id)
+    return {
+      ...def,
+      inventory_count:    old?.inventory_count    ?? def.inventory_count,
+      probability_weight: old?.probability_weight ?? def.probability_weight,
+    }
+  })
+}
+
 function loadInitial() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw)
-      // Ensure all branches exist
       for (const b of ['taipei', 'osaka', 'saigon', '1948']) {
         if (!parsed[b]) parsed[b] = freshBranch()
+        else parsed[b].rewards = mergeRewards(parsed[b].rewards)
       }
       return parsed
     }
