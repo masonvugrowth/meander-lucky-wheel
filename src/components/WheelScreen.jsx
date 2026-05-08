@@ -9,9 +9,6 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
   const meta        = BRANCH_META[branch]
   const branchData  = state[branch]
   const rewards     = branchData.rewards
-  // Wheel only renders prizes still in stock; out-of-stock ones disappear
-  // from the slices but stay in the list below (strike-through).
-  const wheelRewards = rewards.filter(r => r.inventory_count > 0)
 
   const wheelRef    = useRef(null)
   const [spinning, setSpinning]     = useState(false)
@@ -23,17 +20,16 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
   // Pick winner + kick off animation
   const handleSpin = useCallback(() => {
     if (spinning) return
-    if (!wheelRewards.length) return
-
+    // pickWinner already filters out depleted prizes; the wheel still shows
+    // them as slices so guests can't tell which ones are unwinnable.
     const picked = actions.pickWinner(branch)
     if (!picked) return
 
     setSpinning(true)
-    // Index must be within the slices currently drawn on the wheel.
-    const idx = wheelRewards.findIndex(r => r.id === picked.id)
+    const idx = rewards.findIndex(r => r.id === picked.id)
     pendingWinnerRef.current = picked
     wheelRef.current?.spinTo(idx)
-  }, [spinning, wheelRewards, actions, branch])
+  }, [spinning, rewards, actions, branch])
 
   const pendingWinnerRef = useRef(null)
 
@@ -124,7 +120,7 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
         <WheelCanvas
           ref={wheelRef}
           branch={branch}
-          rewards={wheelRewards}
+          rewards={rewards}
           onSpinComplete={handleSpinComplete}
         />
 

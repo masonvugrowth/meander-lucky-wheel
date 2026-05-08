@@ -53,15 +53,16 @@ const WheelCanvas = forwardRef(function WheelCanvas({ branch, rewards, onSpinCom
     rewards.forEach((r, i) => {
       const startA = angleRef.current + i * sliceAngle - Math.PI / 2
       const endA   = startA + sliceAngle
-      const isOut  = r.inventory_count === 0
       const color  = meta.slices[i % meta.slices.length]
 
-      // Slice fill
+      // Slice fill — always render in full colour so guests cannot tell
+      // which prizes are depleted; pickWinner is the source of truth for
+      // what is actually winnable.
       ctx.beginPath()
       ctx.moveTo(CX, CY)
       ctx.arc(CX, CY, R, startA, endA)
       ctx.closePath()
-      ctx.fillStyle = isOut ? '#e0dbd0' : color
+      ctx.fillStyle = color
       ctx.fill()
 
       // Slice border
@@ -82,22 +83,19 @@ const WheelCanvas = forwardRef(function WheelCanvas({ branch, rewards, onSpinCom
       const img = imagesRef.current[r.id]
       const iconSize = 44
       if (img && img !== 'failed') {
-        const prevAlpha = ctx.globalAlpha
-        if (isOut) ctx.globalAlpha = 0.4
         ctx.drawImage(img, -iconSize / 2, -iconSize / 2 - 12, iconSize, iconSize)
-        ctx.globalAlpha = prevAlpha
       } else {
         ctx.font = '500 22px DM Sans, sans-serif'
-        ctx.fillStyle = isOut ? '#aaa' : '#1a1a18'
+        ctx.fillStyle = '#1a1a18'
         ctx.fillText(r.emoji, 0, -16)
       }
 
-      // Short name — bigger, bolder, darker for legibility
+      // Short name
       const short = r.display_name.length > 14
         ? r.display_name.substring(0, 12) + '…'
         : r.display_name
       ctx.font = '600 10.5px "DM Sans", sans-serif'
-      ctx.fillStyle = isOut ? '#999' : '#1f1f1d'
+      ctx.fillStyle = '#1f1f1d'
       ctx.fillText(short, 0, 22)
       ctx.restore()
     })
