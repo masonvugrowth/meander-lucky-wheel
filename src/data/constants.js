@@ -52,3 +52,8 @@ export const TIER_LABELS = {
 
 export const STORAGE_KEY = 'meander_wheel_v2'
 export const ADMIN_PASSWORD = 'meander2025'
+
+// Google Apps Script Web App URL (kết thúc bằng /exec).
+// Để sync stock giữa các thiết bị: paste URL bạn lấy được sau khi Deploy
+// google-apps-script/Code.gs vào đây. Để rỗng nếu muốn chạy local-only.
+export const SHEETS_API_URL = 'https://script.google.com/a/macros/staymeander.com/s/AKfycbxxb6-cpfSc3CjqEHQIw5_WkHXoWL1ECOF85c8uVncZ_yiroZFeqnNBAQG7Dw0HQLhj5A/exec'
