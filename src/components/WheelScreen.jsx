@@ -171,30 +171,25 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
           Available Prizes
         </div>
 
+        {/* Public list — every prize is rendered as if available so guests
+            never see which items have been depleted. Inventory state lives
+            in the staff-only /#/inventory dashboard. */}
         {rewards.map((r, i) => {
-          const isOut = r.inventory_count === 0
           const color = meta.slices[i % meta.slices.length]
           return (
             <div key={r.id} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              display: 'flex', alignItems: 'center',
               padding: '0.6rem 0',
               borderBottom: '1px solid var(--warm)',
-              opacity: isOut ? 0.5 : 1,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', flex: 1, gap: '0.75rem' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%',
-                  background: isOut ? '#ccc' : color, flexShrink: 0 }} />
-                <PrizeIcon reward={r} grayscale={isOut} />
-                <span style={{ fontSize: '0.82rem', color: 'var(--dark)',
-                  textDecoration: isOut ? 'line-through' : 'none' }}>
+                  background: color, flexShrink: 0 }} />
+                <PrizeIcon reward={r} />
+                <span style={{ fontSize: '0.82rem', color: 'var(--dark)' }}>
                   {r.display_name}
                 </span>
               </div>
-              {isOut && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--light)', flexShrink: 0 }}>
-                  Out
-                </span>
-              )}
             </div>
           )
         })}
