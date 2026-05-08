@@ -130,9 +130,12 @@ const WheelCanvas = forwardRef(function WheelCanvas({ branch, rewards, onSpinCom
     const extraSpins  = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI
     const targetSliceCenter = winnerIdx * sliceAngle
     const jitter = (Math.random() - 0.5) * sliceAngle * 0.55
-    const targetDelta = extraSpins - targetSliceCenter - sliceAngle / 2 + jitter
 
+    // Subtract the current rotation so the pointer lands on the winner regardless
+    // of where the wheel left off after a previous spin.
     const startAngle = angleRef.current
+    const targetDelta = extraSpins - startAngle - targetSliceCenter - sliceAngle / 2 + jitter
+
     const duration   = 4200 + Math.random() * 1200
     const startTime  = performance.now()
 
