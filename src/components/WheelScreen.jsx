@@ -167,11 +167,12 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
           Available Prizes
         </div>
 
-        {/* Public list — every prize is rendered as if available so guests
-            never see which items have been depleted. Inventory state lives
-            in the staff-only /#/inventory dashboard. */}
-        {rewards.map((r, i) => {
-          const color = meta.slices[i % meta.slices.length]
+        {/* Public list — every prize looks available so guests can't infer
+            stock state. The leading dot doubles as a covert staff indicator:
+            sage = >10 left, gold = 5–10, rose = <5. The colours sit inside
+            the brand palette so guests just see a styling accent. */}
+        {rewards.map((r) => {
+          const dotColor = stockHintColor(r.inventory_count)
           return (
             <div key={r.id} style={{
               display: 'flex', alignItems: 'center',
@@ -180,7 +181,7 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', flex: 1, gap: '0.75rem' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%',
-                  background: color, flexShrink: 0 }} />
+                  background: dotColor, flexShrink: 0 }} />
                 <PrizeIcon reward={r} />
                 <span style={{ fontSize: '0.82rem', color: 'var(--dark)' }}>
                   {r.display_name}
@@ -208,6 +209,17 @@ export default function WheelScreen({ branch, state, actions, onBack }) {
       )}
     </div>
   )
+}
+
+/* Covert stock indicator for staff. Uses brand-palette colours so the
+   meaning isn't obvious to guests — they just see decorative dots.
+   sage  >10 in stock     (plenty)
+   gold  5–10             (running low)
+   rose  <5               (almost out / out) */
+function stockHintColor(count) {
+  if (count > 10) return '#8fac65' // sage
+  if (count >= 5) return '#c9a84c' // gold
+  return '#c0556e'                  // rose
 }
 
 /* Small icon that prefers the prize image; falls back to emoji on error. */
